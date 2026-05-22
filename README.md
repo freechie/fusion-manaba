@@ -2,7 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Create a local env file from `.env.example`, set `DATABASE_URL` to a Postgres
+database, generate Prisma output, and apply the migration before starting the
+app:
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
+
+Then run the development server:
 
 ```bash
 npm run dev
@@ -19,6 +29,24 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Verification
+
+Unit coverage uses `npm test`. The Postgres-backed route and browser security
+suite uses a production build:
+
+```bash
+npm run db:generate
+npm run db:migrate:deploy
+npm run db:seed:test
+npm run build
+npm run test:e2e
+```
+
+`CART_COOKIE_SECURE=false` is reserved for local or CI HTTP E2E servers. Normal
+production deployments default the cart cookie to `Secure`, and Vercel keeps it
+secure regardless of that local test override. The full vulnerability and CI
+policy is in `SECURITY.md`.
 
 ## Learn More
 

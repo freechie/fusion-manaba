@@ -1,13 +1,12 @@
-import { db } from "@/lib/db";
+import { connection } from "next/server";
 import type { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
+import { getAvailableProducts } from "@/lib/products";
 
 export default async function HomePage() {
-  const rawProducts = await db.product.findMany({
-    where: { isAvailable: true },
-    include: { category: true },
-    orderBy: { createdAt: "asc" },
-  });
+  await connection();
+
+  const rawProducts = await getAvailableProducts();
 
   // Convert Decimal to string for serialization
   const products: Product[] = rawProducts.map((p) => ({

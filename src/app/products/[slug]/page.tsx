@@ -1,18 +1,18 @@
 import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
+import { connection } from "next/server";
 import AddToCartButton from "@/components/AddToCartButton";
+import { getAvailableProductBySlug } from "@/lib/products";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  await connection();
+
   const { slug } = await params;
 
-  const product = await db.product.findUnique({
-    where: { slug },
-    include: { category: true },
-  });
+  const product = await getAvailableProductBySlug(slug);
 
   if (!product) {
     notFound();
