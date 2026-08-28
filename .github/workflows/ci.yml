@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: npm
-          node-version: 20
+          node-version: 24.15.0
       - run: npm ci
       - run: npm run db:generate
       - run: npm run db:migrate:deploy
@@ -38,6 +38,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:react
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
