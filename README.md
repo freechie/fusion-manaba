@@ -6,30 +6,32 @@
 
 Fusion Manaba is a server-rendered ecommerce application built with Next.js,
 TypeScript, PostgreSQL, and Prisma. The current product slice covers catalog
-browsing, product details, a cookie-backed cart API, cart persistence, and
-defensive handling of invalid or unavailable product mutations.
+browsing, product details, and a server-owned cart with quantity controls and
+cookie persistence.
 
 ## Current Capabilities
 
 - Server-rendered product catalog and product-detail routes
 - PostgreSQL product and category data modeled through Prisma
-- Cart API supporting add, update, remove, totals, and persistence behavior
-- Validation for malformed JSON, media type, payload size, item quantity, cart
-  size, and unavailable products
+- Cart page supporting add, update, remove, totals, and persistence behavior
+- Server-side validation for form input, item quantity, cart size, stale cookie
+  entries, and unavailable products
 - HTTP-only, same-site cart cookies with secure production defaults
 - Content Security Policy and browser security headers
-- Unit, API, and browser tests for successful and failed cart flows
+- Unit, React, and browser tests for cart rules and user flows
 
 ## Architecture
 
 - **Web application:** Next.js App Router, React, and TypeScript
 - **Data layer:** PostgreSQL with Prisma ORM and migrations
 - **Domain models:** `Category` and `Product`
-- **API:** `GET` and `POST` handlers under `src/app/api/cart/route.ts`
-- **Cart state:** normalized server-side cookie data with database-backed product
-  validation and decimal total calculation
+- **Cart mutations:** Server Actions under `src/app/actions/cart.ts`
+- **Cart state:** a versioned server-side cookie containing product identifiers
+  and quantities only
+- **Cart reads:** Server Components resolve current product data through Prisma
+  and calculate decimal totals on each request
 - **Quality:** Node test runner for cart-domain units and Playwright for
-  Postgres-backed API/browser behavior
+  Postgres-backed browser behavior
 
 ## Local Setup
 
@@ -73,9 +75,9 @@ npm test
 npm run test:react
 ```
 
-The repository currently contains 11 cart-domain unit tests, 5 React
-client-integration tests, and 9 Playwright API/browser tests. The Postgres-backed
-suite runs against a production build:
+The repository currently contains 11 domain unit tests, 4 React component
+tests, and 6 Playwright browser tests. The Postgres-backed suite runs against a
+production build:
 
 ```bash
 npm run db:generate
@@ -85,9 +87,8 @@ npm run build
 npm run test:e2e
 ```
 
-The Playwright coverage includes cart mutations, cookie persistence, unavailable
-products, failed add states, oversized inputs, CSP/security headers, and browser
-console checks.
+The Playwright coverage includes cart controls, cookie persistence, unavailable
+products, stale cookie entries, CSP/security headers, and browser console checks.
 
 ## Security Notes
 
@@ -101,12 +102,14 @@ reporting and the current security policy.
 - Checkout and payment processing are not implemented.
 - Authentication, customer accounts, inventory reservation, and order management
   are not implemented.
+- Anonymous cart writes in multiple browser tabs use last-write-wins cookie
+  behavior.
 - The application has not been load-tested or benchmarked for production traffic.
 - There are no live customer, transaction, conversion, or revenue metrics.
 
 ## Planned Improvements
 
-- Complete checkout preparation and inventory-consistency behavior.
+- Add a database-backed order draft when checkout work begins.
 - Add stronger database integration coverage and operational observability.
 - Measure page and API performance before optimizing identified bottlenecks.
 - Add analytics and experimentation hooks only after defining measurable product

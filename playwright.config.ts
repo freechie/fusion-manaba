@@ -15,12 +15,7 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "api",
-      testMatch: /.*api\.spec\.ts/,
-    },
-    {
       name: "browser",
-      testIgnore: /.*api\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
   ],

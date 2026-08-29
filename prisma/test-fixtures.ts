@@ -9,7 +9,7 @@ export const testFixtures = {
     name: "E2E Available Guava Pastry",
     slug: "e2e-available-guava-pastry",
     description: "A fixture that is available to route and browser tests.",
-    price: "4.25",
+    price: "12.50",
     isAvailable: true,
   },
   unavailableProduct: {
