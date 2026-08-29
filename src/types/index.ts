@@ -13,17 +13,3 @@ export interface Product {
   isAvailable: boolean;
   category: Category;
 }
-
-export interface CartItem {
-  productId: number;
-  name: string;
-  price: string;
-  quantity: number;
-  total: string;
-}
-
-export interface Cart {
-  items: CartItem[];
-  totalPrice: string;
-  totalItems: number;
-}

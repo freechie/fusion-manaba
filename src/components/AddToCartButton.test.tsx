@@ -1,113 +1,81 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { Cart } from "@/types";
-import { CartProvider } from "@/context/CartProvider";
+import type { CartActionState } from "@/lib/cart/contract";
 import AddToCartButton from "./AddToCartButton";
+
+const actionMocks = vi.hoisted(() => ({
+  addToCart: vi.fn(),
+}));
+
+vi.mock("@/app/actions/cart", () => ({
+  addToCart: actionMocks.addToCart,
+}));
 
 const productId = 41;
 
-const emptyCart: Cart = {
-  items: [],
-  totalItems: 0,
-  totalPrice: "0.00",
-};
-
-const cartWithProduct: Cart = {
-  items: [
-    {
-      productId,
-      name: "Test Product",
-      price: "4.25",
-      quantity: 1,
-      total: "4.25",
-    },
-  ],
-  totalItems: 1,
-  totalPrice: "4.25",
-};
-
-function cartResponse(cart: Cart): Response {
-  return Response.json(cart);
-}
-
-function deferredResponse() {
-  let resolveResponse: ((response: Response) => void) | undefined;
-  const response = new Promise<Response>((resolve) => {
-    resolveResponse = resolve;
+function deferredAction() {
+  let resolveAction: (state: CartActionState) => void = () => {
+    throw new Error("Deferred action resolver was not initialized");
+  };
+  const promise = new Promise<CartActionState>((resolve) => {
+    resolveAction = resolve;
   });
 
-  if (!resolveResponse) {
-    throw new Error("Deferred response resolver was not initialized");
-  }
-
-  return { response, resolveResponse };
-}
-
-function renderButton() {
-  render(
-    <CartProvider>
-      <AddToCartButton productId={productId} />
-    </CartProvider>
-  );
+  return { promise, resolveAction };
 }
 
 describe("AddToCartButton", () => {
-  it("shows pending and successful states, then returns to idle", async () => {
-    const pendingMutation = deferredResponse();
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(cartResponse(emptyCart))
-      .mockReturnValueOnce(pendingMutation.response);
-    vi.stubGlobal("fetch", fetchMock);
+  it("submits a typed add command and shows pending and success states", async () => {
+    const pendingAction = deferredAction();
+    actionMocks.addToCart.mockReturnValueOnce(pendingAction.promise);
     const user = userEvent.setup();
 
-    renderButton();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-
+    render(<AddToCartButton productId={productId} />);
     const addButton = screen.getByRole("button", { name: "Add item to cart" });
     await user.click(addButton);
 
     expect(addButton).toBeDisabled();
     expect(addButton).toHaveTextContent("Adding...");
+    expect(actionMocks.addToCart).toHaveBeenCalledOnce();
 
-    pendingMutation.resolveResponse(cartResponse(cartWithProduct));
+    const formData: FormData = actionMocks.addToCart.mock.calls[0][1];
+    expect(formData.get("productId")).toBe(String(productId));
+    expect(formData.get("quantity")).toBe("1");
 
+    pendingAction.resolveAction({ status: "success" });
     const addedButton = await screen.findByRole("button", {
       name: "Item added to cart",
     });
-    expect(addedButton).toBeDisabled();
+    expect(addedButton).toBeEnabled();
     expect(addedButton).toHaveTextContent("Added!");
-
-    await waitFor(
-      () =>
-        expect(
-          screen.getByRole("button", { name: "Add item to cart" })
-        ).toBeEnabled(),
-      { timeout: 2_500 }
-    );
   });
 
-  it("returns to idle when the cart request fails", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(cartResponse(emptyCart))
-      .mockResolvedValueOnce(
-        Response.json({ error: "test failure" }, { status: 500 })
-      );
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.stubGlobal("fetch", fetchMock);
+  it("shows a recoverable error and allows another submission", async () => {
+    actionMocks.addToCart
+      .mockResolvedValueOnce({
+        status: "error",
+        code: "product-unavailable",
+        message: "This product is no longer available.",
+      })
+      .mockResolvedValueOnce({ status: "success" });
     const user = userEvent.setup();
 
-    renderButton();
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-
+    render(<AddToCartButton productId={productId} />);
     await user.click(screen.getByRole("button", { name: "Add item to cart" }));
 
-    await waitFor(() => expect(consoleError).toHaveBeenCalledOnce());
-    const addButton = screen.getByRole("button", { name: "Add item to cart" });
-    expect(addButton).toBeEnabled();
-    expect(addButton).toHaveTextContent("Add to Cart");
-    expect(addButton).not.toHaveTextContent("Added!");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This product is no longer available."
+    );
+    const retryButton = screen.getByRole("button", {
+      name: "Add item to cart",
+    });
+    expect(retryButton).toBeEnabled();
+
+    await user.click(retryButton);
+    await waitFor(() => expect(actionMocks.addToCart).toHaveBeenCalledTimes(2));
+    expect(
+      await screen.findByRole("button", { name: "Item added to cart" })
+    ).toBeEnabled();
   });
 });

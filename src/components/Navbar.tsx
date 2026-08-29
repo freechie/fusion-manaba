@@ -1,12 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { useCart } from "@/context/CartProvider";
+import { readCartSnapshot } from "@/lib/cart/server";
 
-export default function Navbar() {
-  const { cart } = useCart();
-
-  const totalItems = cart?.totalItems ?? 0;
+export default async function Navbar() {
+  const cart = await readCartSnapshot();
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700">
@@ -17,11 +13,12 @@ export default function Navbar() {
         >
           Fusion Manaba
         </Link>
-        <div>
-          <p className="text-gray-600 dark:text-gray-300">
-            Cart ({totalItems})
-          </p>
-        </div>
+        <Link
+          href="/cart"
+          className="text-gray-600 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-400"
+        >
+          Cart ({cart.unitCount})
+        </Link>
       </nav>
     </header>
   );

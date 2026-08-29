@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import type { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
+import { formatPrice } from "@/lib/money";
 import { getAvailableProducts } from "@/lib/products";
 
 export default async function HomePage() {
@@ -14,7 +15,7 @@ export default async function HomePage() {
     name: p.name,
     slug: p.slug,
     description: p.description,
-    price: p.price.toString(),
+    price: formatPrice(p.price),
     isAvailable: p.isAvailable,
     category: {
       id: p.category.id,

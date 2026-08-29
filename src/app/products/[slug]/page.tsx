@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import AddToCartButton from "@/components/AddToCartButton";
+import { formatPrice } from "@/lib/money";
 import { getAvailableProductBySlug } from "@/lib/products";
 
 interface ProductPageProps {
@@ -31,7 +32,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {product.description || "A delicious treat, crafted with care."}
         </p>
         <div className="text-4xl font-bold text-green-700 dark:text-green-500">
-          ${product.price.toString()}
+          ${formatPrice(product.price)}
         </div>
 
         <AddToCartButton productId={product.id} />
