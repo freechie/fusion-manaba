@@ -3,7 +3,7 @@
 CI blocks high and critical `npm audit` findings after linting, typechecking,
 unit tests, a production build, and Postgres-backed Playwright coverage.
 Moderate transitive advisories from current Next.js, PostCSS, or Prisma
-tooling are tracked through Dependabot and reviewed when upstream releases
+tooling are reviewed during dependency maintenance when upstream releases
 change. Do not use `npm audit fix --force` to downgrade or cross major
 framework boundaries to suppress those findings without a compatibility review.
 
