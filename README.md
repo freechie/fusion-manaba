@@ -1,7 +1,7 @@
 # Fusion Manaba Ecommerce Platform
 
-> **Status:** Work in progress. This is a portfolio project for developing and
-> demonstrating full-stack ecommerce engineering practices; it is not a live
+> **Status:** Work in progress. This is a portfolio project demonstrating
+> full-stack ecommerce engineering practices, with the goal of becoming a live
 > production store.
 
 Fusion Manaba is a server-rendered ecommerce application built with Next.js,
