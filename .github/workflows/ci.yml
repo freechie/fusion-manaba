@@ -42,4 +42,5 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - run: npm audit --audit-level=high
+      # Production tree only: eslint's braces chain has no patched release yet (GHSA-vfj7-8cjw-p6xm).
+      - run: npm audit --audit-level=high --omit=dev
